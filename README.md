@@ -1,0 +1,2 @@
+# so.option
+Substitute getopt.
