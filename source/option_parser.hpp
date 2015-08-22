@@ -26,8 +26,6 @@ namespace so {
 
         void parse_option(char abbr);
 
-        void push_default_option(const std::string& value);
-
         void push_option(const std::string& value);
 
         void scan_abbr(const std::string& fragment);
@@ -59,6 +57,8 @@ namespace so {
         bool set_option(const std::string& name, json::content_type type);
 
         void step_out();
+
+        void step_over();
 
      private:
         const json* option;

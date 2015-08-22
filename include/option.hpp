@@ -20,10 +20,15 @@ namespace so {
       public std::domain_error {
      public:
         enum class error_type {
+            futile_value,
             incomplete_abbr,
+            incomplete_option,
+            incomplete_pair,
             invalid_abbr,
             invalid_option,
             invalid_value_type,
+            not_boolean,
+            not_number,
         };
 
      public:
