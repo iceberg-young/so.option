@@ -104,7 +104,7 @@ namespace so {
         this->container = container_type(s.front());
         this->name = name;
         this->result = result;
-        // FIXME default value
+        this->set_default_value(o);
     }
 
     void option_target::assign(const std::string& value) {
@@ -126,7 +126,9 @@ namespace so {
             case json::content_type::object: {
                 auto p = value.find('=');
                 auto v = option_value(this->element, value.substr(p + 1));
-                r.as_object().emplace(std::make_pair(value.substr(0, p), v));
+                r.as_object().emplace(
+                  std::make_pair(value.substr(0, p), std::move(v))
+                );
                 break;
             }
             default: {
@@ -140,5 +142,24 @@ namespace so {
         this->element = json::content_type::string;
         this->name.erase();
         this->result = nullptr;
+    }
+
+    void option_target::set_default_value(const json::object_t& schema) {
+        auto& o = this->result->as_object();
+        if (o.find(this->name) != o.end()) return;
+
+        auto f = schema.find("default");
+        if (f != schema.end()) {
+            o.emplace(std::make_pair(this->name, f->second));
+        }
+        else if (this->container != json::content_type::null) {
+            o.emplace(std::make_pair(this->name, this->container));
+        }
+        else if (this->element != json::content_type::boolean) {
+            o.emplace(std::make_pair(this->name, this->element));
+        }
+        else {
+            o.emplace(std::make_pair(this->name, true));
+        }
     }
 }

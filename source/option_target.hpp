@@ -27,6 +27,9 @@ namespace so {
             return this->result != nullptr;
         }
 
+     protected:
+        void set_default_value(const json::object_t& schema);
+
      private:
         json::content_type container;
         json::content_type element;

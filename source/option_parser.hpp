@@ -67,7 +67,7 @@ namespace so {
         std::stack<const json*> schema;
         std::stack<json*> result;
 
-        option_target selected;
         option_target fallback;
+        option_target selected;
     };
 }

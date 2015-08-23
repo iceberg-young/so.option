@@ -102,14 +102,14 @@ namespace so {
     }
 
     void option_parser::step_out() {
-        this->fallback.clear();
-        this->selected.clear();
-        if (this->result.size() > 1) {
-            this->result.pop();
-        }
         if (this->schema.size() > 1) {
             this->schema.pop();
         }
+        if (this->result.size() > 1) {
+            this->result.pop();
+        }
+        this->fallback.clear();
+        this->selected.clear();
     }
 
     void option_parser::add_command(const std::string& command) {
