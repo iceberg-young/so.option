@@ -71,7 +71,7 @@ namespace so {
 
         void add_command(const std::string& command);
 
-        void add_option(const std::string& option, option_target& target);
+        void add_option(const std::string& option, option_target& target, bool required);
 
      private:
         std::stack<const json*> schema;

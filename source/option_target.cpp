@@ -68,7 +68,7 @@ namespace so {
                     return json::content_type::object;
                 }
             }
-            throw option_parse_error{error_type::invalid_value_type, t};
+            throw option_parse_error{error_type::invalid_container_type, t};
         }
 
         json::content_type element_type(char t) {
@@ -88,7 +88,7 @@ namespace so {
                     return json::content_type::string;
                 }
             }
-            throw option_parse_error{error_type::invalid_value_type, t};
+            throw option_parse_error{error_type::invalid_element_type, t};
         }
     }
 
@@ -125,6 +125,9 @@ namespace so {
             }
             case json::content_type::object: {
                 auto p = value.find('=');
+                if (p == std::string::npos) {
+                    throw option_parse_error{error_type::not_kv, value};
+                }
                 auto v = option_value(this->element, value.substr(p + 1));
                 r.as_object().emplace(
                   std::make_pair(value.substr(0, p), std::move(v))
@@ -142,6 +145,13 @@ namespace so {
         this->element = json::content_type::string;
         this->name.erase();
         this->result = nullptr;
+    }
+
+    void option_target::close() {
+        if (this->is_set() and this->container == json::content_type::null) {
+            throw option_parse_error{error_type::incomplete_option, this->name};
+        }
+        this->clear();
     }
 
     void option_target::set_default_value(const json::object_t& schema) {

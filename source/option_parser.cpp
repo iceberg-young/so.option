@@ -21,7 +21,6 @@ namespace so {
               : this->fallback.assign(fragment);
             return;
         }
-        this->selected.clear();
         if (fragment[1] != '-') {
             this->scan_abbr(fragment);
             return;
@@ -36,38 +35,39 @@ namespace so {
     }
 
     void option_parser::parse_command(const std::string& name) {
+        const json* s = nullptr;
         try {
-            this->schema.push(&this->get_command(name));
+            s = &this->get_command(name);
         }
         catch (std::out_of_range) {
             try {
-                this->parse_command(this->get_alias(name));
+                s = &this->get_alias(name);
             }
             catch (std::out_of_range) {
                 this->fallback.assign(name);
             }
+            this->parse_command(*s);
             return;
         }
+        this->schema.push(s);
         this->add_command(name);
         this->step_in();
     }
 
     void option_parser::parse_option(const std::string& name) {
-        try {
-            this->add_option(name, this->selected);
-        }
-        catch (std::out_of_range) {
-            throw option_parse_error{error_type::invalid_option, name};
-        }
+        this->selected.close();
+        this->add_option(name, this->selected, true);
     }
 
     void option_parser::parse_option(char abbr) {
+        const json* s = nullptr;
         try {
-            this->parse_option(this->get_abbr(abbr).to_string());
+            s = &this->get_abbr(abbr);
         }
         catch (std::out_of_range) {
             throw option_parse_error{error_type::invalid_abbr, abbr};
         }
+        this->parse_option(s->to_string());
     }
 
     void option_parser::scan_abbr(const std::string& fragment) {
@@ -83,22 +83,14 @@ namespace so {
                     continue;
                 }
             }
-            if (this->selected.is_set()) {
-                throw option_parse_error{error_type::incomplete_abbr, abbr};
-            }
             this->parse_option(abbr);
         }
     }
 
     void option_parser::step_in() {
-        this->selected.clear();
-
-        try {
-            this->add_option("", this->fallback);
-        }
-        catch (std::out_of_range) {
-            this->fallback.clear();
-        }
+        this->fallback.clear();
+        this->add_option("", this->fallback, false);
+        this->selected.close();
     }
 
     void option_parser::step_out() {
@@ -109,7 +101,7 @@ namespace so {
             this->result.pop();
         }
         this->fallback.clear();
-        this->selected.clear();
+        this->selected.close();
     }
 
     void option_parser::add_command(const std::string& command) {
@@ -122,9 +114,15 @@ namespace so {
         this->result.push(&a.back());
     }
 
-    void option_parser::add_option(const std::string& option, option_target& target) {
-        auto& s = this->get_option(option);
-        auto& r = this->get_options();
-        target.initialize(option, &s, &r);
+    void option_parser::add_option(const std::string& option, option_target& target, bool required) {
+        const json* s = nullptr;
+        try {
+            s = &this->get_option(option);
+        }
+        catch (std::out_of_range) {
+            if (not required) return;
+            throw option_parse_error{error_type::invalid_option, option};
+        }
+        target.initialize(option, s, &this->get_options());
     }
 }

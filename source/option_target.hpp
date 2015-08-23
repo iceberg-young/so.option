@@ -22,6 +22,8 @@ namespace so {
 
         void clear();
 
+        void close();
+
      public:
         bool is_set() const {
             return this->result != nullptr;

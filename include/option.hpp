@@ -21,14 +21,14 @@ namespace so {
      public:
         enum class error_type {
             futile_value,
-            incomplete_abbr,
             incomplete_option,
-            incomplete_pair,
             invalid_abbr,
             invalid_option,
-            invalid_value_type,
+            invalid_container_type,
+            invalid_element_type,
             not_boolean,
             not_number,
+            not_kv,
         };
 
      public:
