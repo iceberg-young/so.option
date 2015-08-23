@@ -28,7 +28,7 @@ namespace so {
         }
         if (fragment.size() != 2) { // "--"
             auto p = fragment.find('=');
-            this->parse_option(fragment.substr(2, p));
+            this->parse_option(fragment.substr(2, p - 2));
             if (p != std::string::npos) {
                 this->selected.assign(fragment.substr(p + 1));
             }
@@ -113,11 +113,10 @@ namespace so {
     }
 
     void option_parser::add_command(const std::string& command) {
-        auto& a = this->get_result(option_key::command).as_array();
-        a.emplace_back(json{
+        auto& a = this->get_commands().as_array();
+        a.emplace_back(json::object_t{
           {
             {option_key::name, command},
-            {option_key::option, json::content_type::object}
           }
         });
         this->result.push(&a.back());
@@ -125,7 +124,7 @@ namespace so {
 
     void option_parser::add_option(const std::string& option, option_target& target) {
         auto& s = this->get_option(option);
-        auto& r = this->get_result(option_key::option);
+        auto& r = this->get_options();
         target.initialize(option, &s, &r);
     }
 }

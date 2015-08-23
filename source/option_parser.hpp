@@ -56,7 +56,17 @@ namespace so {
 
      protected:
         json& get_result(const std::string& category) const {
-            return (*this->result.top())[category];
+            return (*this->result.top())(category);
+        }
+
+        json& get_commands() const {
+            return this->get_result(option_key::command)
+              .be(json::content_type::array);
+        }
+
+        json& get_options() const {
+            return this->get_result(option_key::option)
+              .be(json::content_type::object);
         }
 
         void add_command(const std::string& command);
