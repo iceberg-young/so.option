@@ -4,16 +4,16 @@
  */
 #pragma once
 
-#include "json.hpp"
+#include "option_target.hpp"
 #include <stack>
 
 namespace so {
     class option_parser {
      public:
-        option_parser(const json* schema, json* result) :
-          option(nullptr) {
+        option_parser(const json* schema, json* result) {
             this->schema.push(schema);
             this->result.push(result);
+            this->step_in();
         }
 
      public:
@@ -26,9 +26,12 @@ namespace so {
 
         void parse_option(char abbr);
 
-        void push_option(const std::string& value);
-
         void scan_abbr(const std::string& fragment);
+
+     protected:
+        void step_in();
+
+        void step_out();
 
      protected:
         const json& get_schema(const std::string& category) const {
@@ -52,17 +55,19 @@ namespace so {
         }
 
      protected:
-        void set_command(const std::string& name);
+        json& get_result(const std::string& category) const {
+            return (*this->result.top())[category];
+        }
 
-        bool set_option(const std::string& name, json::content_type type);
+        void add_command(const std::string& command);
 
-        void step_out();
-
-        void step_over();
+        void add_option(const std::string& option, option_target& target);
 
      private:
-        const json* option;
         std::stack<const json*> schema;
         std::stack<json*> result;
+
+        option_target selected;
+        option_target fallback;
     };
 }

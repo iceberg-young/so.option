@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 set(SOURCE_FILES
     option.cpp
     option_parser.cpp
+    option_target.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
