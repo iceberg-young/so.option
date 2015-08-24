@@ -19,6 +19,10 @@ namespace so {
      public:
         void push(const std::string& fragment);
 
+        void done() {
+            this->step_out(-1);
+        }
+
      protected:
         void parse_command(const std::string& name);
 
@@ -31,7 +35,9 @@ namespace so {
      protected:
         void step_in();
 
-        void step_out();
+        void step_out(size_t level);
+
+        void verify() const;
 
      protected:
         const json& get_schema(const std::string& category) const {
@@ -76,6 +82,7 @@ namespace so {
      private:
         std::stack<const json*> schema;
         std::stack<json*> result;
+        //std::stack<std::pair<const json*, json*>> level; //< TODO
 
         option_target fallback;
         option_target selected;

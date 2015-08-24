@@ -149,7 +149,7 @@ namespace so {
 
     void option_target::close() {
         if (this->is_set() and this->container == json::content_type::null) {
-            throw option_parse_error{error_type::incomplete_option, this->name};
+            throw option_parse_error{error_type::absent_value, this->name};
         }
         this->clear();
     }

@@ -12,5 +12,6 @@ namespace so {
         for (int i = 0; i < count; ++i) {
             p.push(fragments[i]);
         }
+        p.done();
     }
 }

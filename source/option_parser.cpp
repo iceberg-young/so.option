@@ -6,7 +6,31 @@
 #include "option_parser.hpp"
 
 namespace so {
-    using error_type = option_parse_error::error_type;
+    namespace {
+        using error_type = option_parse_error::error_type;
+
+        void verify_present(
+          const json& schema,
+          json::object_t& result,
+          json::object_t::iterator& end,
+          const std::string& name
+        ) {
+            if (is::boolean(schema)) {
+                if (not schema) return;
+                throw option_parse_error{error_type::required, name};
+            }
+            if (is::array(schema)) {
+                for (auto& by : schema.as_array()) {
+                    if (result.find(by) == end) continue;
+                    // FIXME: option w/o a value is not presented
+                    throw option_parse_error{
+                      error_type::required_by,
+                      name + '\t' + by.to_string()
+                    };
+                }
+            }
+        }
+    }
 
     void option_parser::push(const std::string& fragment) {
         if (fragment.empty() or fragment[0] != '-') {
@@ -79,7 +103,7 @@ namespace so {
                     return;
                 }
                 case '^': {
-                    this->step_out();
+                    this->step_out(1);
                     continue;
                 }
             }
@@ -93,15 +117,42 @@ namespace so {
         this->selected.close();
     }
 
-    void option_parser::step_out() {
-        if (this->schema.size() > 1) {
-            this->schema.pop();
-        }
-        if (this->result.size() > 1) {
-            this->result.pop();
-        }
+    void option_parser::step_out(size_t level) {
         this->fallback.clear();
         this->selected.close();
+        level = std::min(level, this->result.size());
+        for (size_t i = 0; i < level; ++i) {
+            this->verify();
+            if (this->result.size() > 1) {
+                this->result.pop();
+            }
+            if (this->schema.size() > 1) {
+                this->schema.pop();
+            }
+        }
+    }
+
+    void option_parser::verify() const {
+        const json::object_t* s = nullptr;
+        try {
+            s = &this->get_schema(option_key::option).as_object();
+        }
+        catch (std::out_of_range) {
+            return;
+        }
+        if (s->empty()) return;
+
+        auto& r = this->get_options().as_object();
+        auto e = r.end();
+        for (auto& i : *s) {
+            if (r.find(i.first) != e) continue;
+
+            auto& o = i.second.as_object();
+            auto x = o.find(option_key::required);
+            if (x == o.end()) continue;
+
+            verify_present(x->second, r, e, i.first);
+        }
     }
 
     void option_parser::add_command(const std::string& command) {

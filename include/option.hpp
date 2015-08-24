@@ -20,8 +20,10 @@ namespace so {
       public std::domain_error {
      public:
         enum class error_type {
+            absent_value,
             futile_value,
-            incomplete_option,
+            required,
+            required_by,
             invalid_abbr,
             invalid_option,
             invalid_container_type,
@@ -49,10 +51,12 @@ namespace so {
         constexpr char abbr[]{"abbr"};
         constexpr char alias[]{"alias"};
         constexpr char command[]{"command"};
-        constexpr char description[]{"description"};
         constexpr char option[]{"option"};
 
+        constexpr char description[]{"description"};
         constexpr char name[]{"name"};
         constexpr char value[]{"value"};
+
+        constexpr char required[]{"required"};
     }
 }
