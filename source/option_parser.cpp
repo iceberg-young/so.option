@@ -60,22 +60,17 @@ namespace so {
 
     void option_parser::parse_command(const std::string& name) {
         const json* s = nullptr;
-        try {
-            s = &this->get_command(name);
+        if (this->find_command_schema(name, s)) {
+            this->schema.push(s);
+            this->add_command(name);
+            this->step_in();
         }
-        catch (std::out_of_range) {
-            try {
-                s = &this->get_alias(name);
-            }
-            catch (std::out_of_range) {
-                this->fallback.assign(name);
-            }
+        else if (this->find_alias_schema(name, s)) {
             this->parse_command(*s);
-            return;
         }
-        this->schema.push(s);
-        this->add_command(name);
-        this->step_in();
+        else {
+            this->fallback.assign(name);
+        }
     }
 
     void option_parser::parse_option(const std::string& name) {
@@ -85,10 +80,7 @@ namespace so {
 
     void option_parser::parse_option(char abbr) {
         const json* s = nullptr;
-        try {
-            s = &this->get_abbr(abbr);
-        }
-        catch (std::out_of_range) {
+        if (not this->find_abbr_schema(abbr, s)) {
             throw option_parse_error{error_type::invalid_abbr, abbr};
         }
         this->parse_option(s->to_string());
@@ -134,13 +126,7 @@ namespace so {
 
     void option_parser::verify() const {
         const json::object_t* s = nullptr;
-        try {
-            s = &this->get_schema(option_key::option).as_object();
-        }
-        catch (std::out_of_range) {
-            return;
-        }
-        if (s->empty()) return;
+        if (not this->find_options_schema(s)) return;
 
         auto& r = this->get_options().as_object();
         auto e = r.end();
@@ -155,6 +141,24 @@ namespace so {
         }
     }
 
+    bool option_parser::find(const json::object_t& set, const std::string& key, const json*& sub) const {
+        auto f = set.find(key);
+        if (f != set.end()) {
+            sub = &f->second;
+            return true;
+        }
+        return false;
+    }
+
+    bool option_parser::find_options_schema(const json::object_t*& sub) const {
+        const json* s = nullptr;
+        if (this->find_schema(option_key::option, s)) {
+            sub = &s->as_object();
+            return not sub->empty();
+        }
+        return false;
+    }
+
     void option_parser::add_command(const std::string& command) {
         auto& a = this->get_commands().as_array();
         a.emplace_back(json::object_t{
@@ -167,13 +171,11 @@ namespace so {
 
     void option_parser::add_option(const std::string& option, option_target& target, bool required) {
         const json* s = nullptr;
-        try {
-            s = &this->get_option(option);
+        if (this->find_option_schema(option, s)) {
+            target.initialize(option, s, &this->get_options());
         }
-        catch (std::out_of_range) {
-            if (not required) return;
+        else if (required) {
             throw option_parse_error{error_type::invalid_option, option};
         }
-        target.initialize(option, s, &this->get_options());
     }
 }

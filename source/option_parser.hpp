@@ -40,25 +40,34 @@ namespace so {
         void verify() const;
 
      protected:
-        const json& get_schema(const std::string& category) const {
-            return (*this->schema.top())[category];
+        bool find(const json::object_t& set, const std::string& key, const json*& sub) const;
+
+        bool find_schema(const std::string& key, const json*& sub) const {
+            return this->find(this->schema.top()->as_object(), key, sub);
         }
 
-        const json& get_abbr(char abbr) const {
-            return this->get_schema(option_key::abbr)[std::string{abbr}];
+        bool find_schema(const std::string& key, const std::string& name, const json*& sub) const {
+            return this->find_schema(key, sub)
+              and this->find(sub->as_object(), name, sub);
         }
 
-        const json& get_alias(const std::string& alias) const {
-            return this->get_schema(option_key::alias)[alias];
+        bool find_abbr_schema(char abbr, const json*& sub) const {
+            return this->find_schema(option_key::abbr, std::string{abbr}, sub);
         }
 
-        const json& get_command(const std::string& command) const {
-            return this->get_schema(option_key::command)[command];
+        bool find_alias_schema(const std::string& alias, const json*& sub) const {
+            return this->find_schema(option_key::alias, alias, sub);
         }
 
-        const json& get_option(const std::string& option) const {
-            return this->get_schema(option_key::option)[option];
+        bool find_command_schema(const std::string& command, const json*& sub) const {
+            return this->find_schema(option_key::command, command, sub);
         }
+
+        bool find_option_schema(const std::string& option, const json*& sub) const {
+            return this->find_schema(option_key::option, option, sub);
+        }
+
+        bool find_options_schema(const json::object_t*& sub) const;
 
      protected:
         json& get_result(const std::string& category) const {
