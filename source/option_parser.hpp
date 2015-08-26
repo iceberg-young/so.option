@@ -11,8 +11,7 @@ namespace so {
     class option_parser {
      public:
         option_parser(const json* schema, json* result) {
-            this->schema.push(schema);
-            this->result.push(result);
+            this->level.push(std::make_pair(schema, result));
             this->step_in();
         }
 
@@ -35,7 +34,7 @@ namespace so {
      protected:
         void step_in();
 
-        void step_out(size_t level);
+        void step_out(size_t steps);
 
         void verify() const;
 
@@ -43,7 +42,7 @@ namespace so {
         bool find(const json::object_t& set, const std::string& key, const json*& sub) const;
 
         bool find_schema(const std::string& key, const json*& sub) const {
-            return this->find(this->schema.top()->as_object(), key, sub);
+            return this->find(this->level.top().first->as_object(), key, sub);
         }
 
         bool find_schema(const std::string& key, const std::string& name, const json*& sub) const {
@@ -71,7 +70,7 @@ namespace so {
 
      protected:
         json& get_result(const std::string& category) const {
-            return (*this->result.top())(category);
+            return (*this->level.top().second)(category);
         }
 
         json& get_commands() const {
@@ -84,15 +83,12 @@ namespace so {
               .be(json::content_type::object);
         }
 
-        void add_command(const std::string& command);
+        void add_command(const json* schema, const std::string& command);
 
         void add_option(const std::string& option, option_target& target, bool required);
 
      private:
-        std::stack<const json*> schema;
-        std::stack<json*> result;
-        //std::stack<std::pair<const json*, json*>> level; //< TODO
-
+        std::stack<std::pair<const json*, json*>> level;
         option_target fallback;
         option_target selected;
     };

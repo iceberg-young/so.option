@@ -61,8 +61,7 @@ namespace so {
     void option_parser::parse_command(const std::string& name) {
         const json* s = nullptr;
         if (this->find_command_schema(name, s)) {
-            this->schema.push(s);
-            this->add_command(name);
+            this->add_command(s, name);
             this->step_in();
         }
         else if (this->find_alias_schema(name, s)) {
@@ -109,18 +108,13 @@ namespace so {
         this->selected.close();
     }
 
-    void option_parser::step_out(size_t level) {
+    void option_parser::step_out(size_t steps) {
         this->fallback.clear();
         this->selected.close();
-        level = std::min(level, this->result.size());
-        for (size_t i = 0; i < level; ++i) {
+        steps = std::min(steps, this->level.size() - 1);
+        for (size_t i = 0; i < steps; ++i) {
             this->verify();
-            if (this->result.size() > 1) {
-                this->result.pop();
-            }
-            if (this->schema.size() > 1) {
-                this->schema.pop();
-            }
+            this->level.pop();
         }
     }
 
@@ -159,14 +153,14 @@ namespace so {
         return false;
     }
 
-    void option_parser::add_command(const std::string& command) {
+    void option_parser::add_command(const json* schema, const std::string& command) {
         auto& a = this->get_commands().as_array();
         a.emplace_back(json::object_t{
           {
             {option_key::name, command},
           }
         });
-        this->result.push(&a.back());
+        this->level.push(std::make_pair(schema, &a.back()));
     }
 
     void option_parser::add_option(const std::string& option, option_target& target, bool required) {
