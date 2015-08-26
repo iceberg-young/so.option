@@ -26,7 +26,8 @@ namespace so {
 
      public:
         bool is_set() const {
-            return this->result != nullptr;
+            return this->result != nullptr
+              and this->element != json::content_type::null;
         }
 
      protected:

@@ -98,7 +98,9 @@ namespace so {
         std::string s = f != o.end() ? f->second : "";
         this->element = element_type(s.back());
         if (this->element == json::content_type::null) {
-            this->clear();
+            if (not name.empty()) {
+                result->as_object().emplace(std::make_pair(name, true));
+            }
             return;
         }
         this->container = container_type(s.front());

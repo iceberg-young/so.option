@@ -22,7 +22,6 @@ namespace so {
             if (is::array(schema)) {
                 for (auto& by : schema.as_array()) {
                     if (result.find(by) == end) continue;
-                    // FIXME: option w/o a value is not presented
                     throw option_parse_error{
                       error_type::required_by,
                       name + '\t' + by.to_string()
