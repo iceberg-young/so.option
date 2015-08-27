@@ -106,11 +106,11 @@ namespace so {
         this->container = container_type(s.front());
         this->name = name;
         this->result = result;
-        this->set_default_value(o);
+        this->assign_default(o);
     }
 
     void option_target::assign(const std::string& value) {
-        if (not this->is_set()) {
+        if (this->empty()) {
             throw option_parse_error{error_type::futile_value, value};
         }
 
@@ -140,29 +140,24 @@ namespace so {
                 throw this->container;
             }
         }
-    }
-
-    void option_target::clear() {
-        this->container = json::content_type::null;
-        this->element = json::content_type::string;
-        this->name.erase();
-        this->result = nullptr;
+        this->assigned = true;
     }
 
     void option_target::close() {
-        if (this->is_set() and this->container == json::content_type::null) {
+        if (not (this->assigned or this->empty())) {
             throw option_parse_error{error_type::absent_value, this->name};
         }
         this->clear();
     }
 
-    void option_target::set_default_value(const json::object_t& schema) {
+    void option_target::assign_default(const json::object_t& schema) {
         auto& o = this->result->as_object();
         if (o.find(this->name) != o.end()) return;
 
         auto f = schema.find("default");
         if (f != schema.end()) {
             o.emplace(std::make_pair(this->name, f->second));
+            this->assigned = true;
         }
         else if (this->container != json::content_type::null) {
             o.emplace(std::make_pair(this->name, this->container));

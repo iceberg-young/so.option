@@ -33,15 +33,15 @@ namespace so {
 
     void option_parser::push(const std::string& fragment) {
         if (fragment.empty() or fragment[0] != '-') {
-            this->selected.is_set()
-              ? this->selected.assign(fragment)
-              : this->parse_command(fragment);
+            this->selected.empty()
+              ? this->parse_command(fragment)
+              : this->selected.assign(fragment);
             return;
         }
         if (fragment.size() == 1) { // "-"
-            this->selected.is_set()
-              ? this->selected.assign(fragment)
-              : this->fallback.assign(fragment);
+            this->selected.empty()
+              ? this->fallback.assign(fragment)
+              : this->selected.assign(fragment);
             return;
         }
         if (fragment[1] != '-') {
@@ -102,13 +102,13 @@ namespace so {
     }
 
     void option_parser::step_in() {
-        this->fallback.clear();
+        this->fallback.close();
         this->add_option("", this->fallback, false);
         this->selected.close();
     }
 
     void option_parser::step_out(size_t steps) {
-        this->fallback.clear();
+        this->fallback.close();
         this->selected.close();
         steps = std::min(steps, this->level.size() - 1);
         for (size_t i = 0; i < steps; ++i) {

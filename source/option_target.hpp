@@ -20,20 +20,27 @@ namespace so {
 
         void assign(const std::string& value);
 
-        void clear();
-
         void close();
 
      public:
-        bool is_set() const {
-            return this->result != nullptr
-              and this->element != json::content_type::null;
+        bool empty() const {
+            return this->result == nullptr
+              or this->element == json::content_type::null;
         }
 
      protected:
-        void set_default_value(const json::object_t& schema);
+        void assign_default(const json::object_t& schema);
+
+        void clear() {
+            this->assigned = false;
+            this->container = json::content_type::null;
+            this->element = json::content_type::string;
+            this->name.erase();
+            this->result = nullptr;
+        }
 
      private:
+        bool assigned;
         json::content_type container;
         json::content_type element;
         std::string name;
